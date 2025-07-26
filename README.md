@@ -112,8 +112,59 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 
 ## Ports
 
-- **80**: HTTP access to nginx proxy
+- **80**: HTTP access to nginx proxy (redirects to HTTPS when SSL is enabled)
+- **443**: HTTPS access to nginx proxy (when SSL is configured)
 - **8443**: Direct access to bridgelink application
+
+## HTTPS/SSL Setup
+
+### Development SSL (Self-Signed Certificates)
+
+For development and testing, you can use self-signed certificates:
+
+```bash
+# Generate and setup SSL certificates
+make ssl-dev
+
+# Test HTTPS endpoint
+curl -k https://localhost/health
+
+# Trust certificate on macOS (optional)
+make trust-cert
+```
+
+**Access Points with SSL:**
+- **HTTPS API**: `https://localhost/api/`
+- **HTTPS Health**: `https://localhost/health`
+- **HTTP**: Automatically redirects to HTTPS
+
+### Production SSL (Let's Encrypt)
+
+For production deployments with a real domain:
+
+```bash
+# Setup Let's Encrypt SSL
+make ssl-prod DOMAIN=api.yourdomain.com EMAIL=admin@yourdomain.com
+
+# Or manually:
+./scripts/setup-letsencrypt.sh api.yourdomain.com admin@yourdomain.com
+```
+
+**Production Requirements:**
+- Domain name pointing to your server
+- Ports 80 and 443 open and accessible
+- Valid email address for Let's Encrypt notifications
+
+### SSL Configuration Features
+
+- ✅ **TLS 1.2 & 1.3** support
+- ✅ **HTTP/2** enabled
+- ✅ **HSTS** (HTTP Strict Transport Security)
+- ✅ **Security Headers** (XSS, Content-Type, Frame-Options)
+- ✅ **OCSP Stapling** (production)
+- ✅ **Perfect Forward Secrecy**
+- ✅ **Automatic HTTP to HTTPS redirect**
+- ✅ **Certificate auto-renewal** (Let's Encrypt)
 
 ## API Testing with Postman
 
@@ -128,8 +179,14 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 1. Click the gear icon (⚙️) → "Manage Environments"
 2. Add New Environment called "Bridgelink Local"
 3. Add these variables:
-   - `base_url_proxy`: `http://localhost/api`
+   - `base_url_proxy_http`: `http://localhost/api`
+   - `base_url_proxy_https`: `https://localhost/api`
    - `base_url_direct`: `http://localhost:8443`
+
+**SSL Certificate Settings (for HTTPS):**
+1. Go to Postman Settings (⚙️) → "Certificates"
+2. Turn OFF "SSL certificate verification" for development
+3. Or add the certificate file (`ssl/cert.crt`) if using trusted certificates
 
 ### 2. Test API Connectivity
 
