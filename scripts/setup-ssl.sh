@@ -30,9 +30,11 @@ echo "Generating self-signed certificate..."
 openssl x509 -req -days 365 -in "$SSL_DIR/cert.csr" -signkey "$SSL_DIR/private.key" -out "$SSL_DIR/cert.crt" \
     -extensions v3_req -extfile <(cat <<EOF
 [v3_req]
-keyUsage = keyEncipherment, dataEncipherment
-extendedKeyUsage = serverAuth
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, keyAgreement
+extendedKeyUsage = critical, serverAuth
 subjectAltName = @alt_names
+nsCertType = server
 
 [alt_names]
 DNS.1 = $DOMAIN
